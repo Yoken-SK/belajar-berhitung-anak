@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan PiMa - Misi Pecahan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .slice-transition { transition: all 0.5s ease-in-out; }
+    </style>
+</head>
+<body class="bg-indigo-50 min-h-screen flex flex-col items-center justify-center p-6 font-sans">
+
+    <!-- Kontainer Utama -->
+    <div class="bg-white rounded-3xl shadow-xl w-full max-w-2xl overflow-hidden border-4 border-indigo-200">
+        
+        <!-- Header -->
+        <div class="bg-indigo-500 text-white text-center py-4">
+            <h1 class="text-2xl font-bold uppercase tracking-wider">Petualangan PiMa</h1>
+            <p class="text-sm opacity-90">Misi: Gabungkan Martabak!</p>
+        </div>
+
+        <div class="p-8 flex flex-col items-center">
+            
+            <!-- Area Cerita -->
+            <div id="story-text" class="text-lg text-gray-700 text-center mb-8 bg-blue-50 p-4 rounded-xl border border-blue-100">
+                Budi punya <strong>1/2 (setengah)</strong> loyang martabak cokelat.<br>
+                Siti membawa <strong>1/4 (seperempat)</strong> martabak keju.<br>
+                <span class="text-indigo-600 font-bold mt-2 block">Klik martabak Siti untuk memindahkannya ke loyang Budi!</span>
+            </div>
+
+            <!-- Area Interaktif (Loyang dan Potongan) -->
+            <div class="flex flex-col md:flex-row items-center gap-12 mb-8">
+                
+                <!-- Loyang Budi (Dibagi 4, terisi 2) -->
+                <div class="relative flex flex-col items-center">
+                    <p class="mb-2 font-bold text-gray-600">Loyang Budi (1/2)</p>
+                    <div class="w-48 h-48 rounded-full border-8 border-gray-300 bg-gray-100 relative overflow-hidden grid grid-cols-2 grid-rows-2 gap-1 p-1">
+                        <!-- Potongan 1 & 2 (1/2 Martabak Cokelat) -->
+                        <div class="bg-amber-800 rounded-tl-full border-2 border-amber-900 shadow-inner"></div>
+                        <div class="bg-amber-800 rounded-tr-full border-2 border-amber-900 shadow-inner"></div>
+                        <!-- Slot Kosong -->
+                        <div id="empty-slot-1" class="bg-transparent rounded-bl-full"></div>
+                        <div id="empty-slot-2" class="bg-transparent rounded-br-full"></div>
+                    </div>
+                </div>
+
+                <!-- Martabak Siti (1/4) -->
+                <div class="relative flex flex-col items-center">
+                    <p id="siti-label" class="mb-2 font-bold text-gray-600">Martabak Siti (1/4)</p>
+                    <div id="siti-slice" onclick="moveSlice()" class="w-20 h-20 bg-yellow-400 rounded-br-full border-2 border-yellow-500 shadow-lg cursor-pointer hover:scale-110 slice-transition flex items-center justify-center">
+                        <span class="text-yellow-800 text-xs font-bold -ml-4 -mt-4">Keju</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Area Hasil (Tahap Abstrak) -->
+            <div id="math-equation" class="hidden w-full flex-col items-center opacity-0 slice-transition">
+                <div class="flex items-center gap-4 text-3xl font-bold text-indigo-800 bg-indigo-100 px-8 py-4 rounded-2xl">
+                    <div class="text-center">
+                        <span class="block border-b-4 border-indigo-800">2</span>
+                        <span class="block">4</span>
+                    </div>
+                    <span>+</span>
+                    <div class="text-center">
+                        <span class="block border-b-4 border-indigo-800">1</span>
+                        <span class="block">4</span>
+                    </div>
+                    <span>=</span>
+                    <div class="text-center text-green-600">
+                        <span class="block border-b-4 border-green-600">3</span>
+                        <span class="block">4</span>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-xl font-bold text-green-500 mb-4">🎉 Hebat! Kamu berhasil! 🎉</p>
+                    <button onclick="resetGame()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-full transition-colors shadow-md">
+                        Main Lagi
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Logika Interaksi -->
+    <script>
+        function moveSlice() {
+            const sitiSlice = document.getElementById('siti-slice');
+            const emptySlot = document.getElementById('empty-slot-2');
+            const equationBox = document.getElementById('math-equation');
+            const storyText = document.getElementById('story-text');
+            const sitiLabel = document.getElementById('siti-label');
+
+            // Pindahkan gaya visual potongan ke slot kosong di loyang
+            emptySlot.className = "bg-yellow-400 rounded-br-full border-2 border-yellow-500 shadow-inner slice-transition flex items-center justify-center";
+            emptySlot.innerHTML = '<span class="text-yellow-800 text-xs font-bold -ml-4 -mt-4">Keju</span>';
+            
+            // Sembunyikan potongan asli Siti
+            sitiSlice.style.display = 'none';
+            sitiLabel.style.display = 'none';
+
+            // Ubah teks cerita
+            storyText.innerHTML = "Luar biasa! 1/2 loyang sama dengan 2/4. Ditambah 1/4, hasilnya menjadi <strong>3/4</strong>.";
+            storyText.className = "text-lg text-center mb-8 bg-green-50 p-4 rounded-xl border border-green-200 text-green-800";
+
+            // Munculkan persamaan matematika (Tahap Abstrak)
+            equationBox.classList.remove('hidden');
+            equationBox.classList.add('flex');
+            setTimeout(() => {
+                equationBox.classList.remove('opacity-0');
+            }, 100);
+        }
+
+        function resetGame() {
+            // Kembalikan ke kondisi semula
+            document.getElementById('empty-slot-2').className = "bg-transparent rounded-br-full";
+            document.getElementById('empty-slot-2').innerHTML = "";
+            
+            const sitiSlice = document.getElementById('siti-slice');
+            sitiSlice.style.display = 'flex';
+            document.getElementById('siti-label').style.display = 'block';
+            
+            document.getElementById('math-equation').classList.add('hidden', 'opacity-0');
+            document.getElementById('math-equation').classList.remove('flex');
+            
+            const storyText = document.getElementById('story-text');
+            storyText.innerHTML = "Budi punya <strong>1/2 (setengah)</strong> loyang martabak cokelat.<br>Siti membawa <strong>1/4 (seperempat)</strong> martabak keju.<br><span class='text-indigo-600 font-bold mt-2 block'>Klik martabak Siti untuk memindahkannya ke loyang Budi!</span>";
+            storyText.className = "text-lg text-gray-700 text-center mb-8 bg-blue-50 p-4 rounded-xl border border-blue-100";
+        }
+    </script>
+</body>
+</html>
