@@ -1,147 +1,184 @@
 import streamlit as st
-import time
 
-# Konfigurasi Halaman
-st.set_page_config(
-    page_title="Petualangan PiMa",
-    page_icon="🧮",
-    layout="centered"
-)
+# --- KONFIGURASI HALAMAN ---
+st.set_page_config(page_title="Petualangan PiMa", page_icon="🚀", layout="centered")
 
-# Kustomisasi CSS untuk mempercantik tampilan
+# --- KUSTOMISASI CSS (Warna Pastel yang Adem di Mata) ---
 st.markdown("""
     <style>
-    .main-title {
-        color: #4f46e5;
-        text-align: center;
-        font-size: 3rem;
-        font-weight: bold;
-    }
-    .score-board {
-        background-color: #f3f4f6;
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-        border: 2px solid #e5e7eb;
-    }
-    .story-box {
-        background-color: #eff6ff;
-        padding: 20px;
-        border-radius: 15px;
-        border-left: 5px solid #3b82f6;
-        font-size: 1.2rem;
+    /* Background utama aplikasi: Soft Mint / Hijau sangat muda */
+    .stApp { background-color: #F0FDF4; }
+    
+    /* Kartu Soal */
+    .card {
+        background-color: #FFFFFF;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border-top: 8px solid #818CF8; /* Aksen Lavender/Ungu lembut */
         margin-bottom: 20px;
     }
+    
+    /* Teks dan Judul */
+    .main-title { color: #4F46E5; font-size: 2.8rem; font-weight: 900; text-align: center; }
+    .subtitle { color: #6366F1; font-size: 1.2rem; text-align: center; margin-bottom: 30px; }
+    .score-badge { background-color: #DBEAFE; color: #1E40AF; padding: 10px 20px; border-radius: 12px; font-weight: bold; font-size: 1.2rem; text-align: center; }
+    .level-badge { background-color: #FEF3C7; color: #92400E; padding: 10px 20px; border-radius: 12px; font-weight: bold; font-size: 1.2rem; text-align: center; }
+    .question-text { font-size: 1.4rem; color: #1E293B; font-weight: 600; margin-bottom: 15px; }
+    
+    /* Kotak Penjelasan */
+    .explanation-box { background-color: #D1FAE5; color: #065F46; padding: 15px; border-radius: 12px; border-left: 5px solid #10B981; margin-top: 20px; }
     </style>
 """, unsafe_allow_html=True)
 
-# Inisialisasi Session State (Menyimpan Skor dan Status Misi)
+# --- BANK SOAL MISI 1 (10 Soal Pecahan) ---
+misi_1 = [
+    {
+        "soal": "1. Budi punya 1/2 loyang martabak. Siti membawa 1/4 loyang. Jika digabungkan, berapa jumlahnya?",
+        "opsi": ["2/6", "3/4", "4/4"],
+        "jawaban": "3/4",
+        "pesan": "Hebat! 1/2 itu sama besarnya dengan 2/4. Jadi 2/4 + 1/4 = 3/4."
+    },
+    {
+        "soal": "2. Ibu memotong kue ulang tahun menjadi 8 bagian sama besar. Adik memakan 3 bagian. Berapa sisa kue ibu?",
+        "opsi": ["5/8", "3/8", "8/8"],
+        "jawaban": "5/8",
+        "pesan": "Tepat sekali! Kue utuh adalah 8/8. Jika dimakan 3/8, sisanya 8/8 - 3/8 = 5/8."
+    },
+    {
+        "soal": "3. Manakah potongan pizza yang lebih besar untukmu?",
+        "opsi": ["1/2 bagian", "1/4 bagian", "Sama besarnya"],
+        "jawaban": "1/2 bagian",
+        "pesan": "Betul! Ingat, semakin kecil angka di bawah (penyebut), semakin BESAR potongan pizzanya!"
+    },
+    {
+        "soal": "4. Kakak minum 1/3 gelas susu. Adik minum 1/3 gelas susu. Berapa total susu yang diminum?",
+        "opsi": ["2/6", "1/3", "2/3"],
+        "jawaban": "2/3",
+        "pesan": "Keren! Kalau angka di bawahnya (penyebut) sudah sama, kita cukup jumlahkan angka yang atas (pembilang). 1+1 = 2."
+    },
+    {
+        "soal": "5. Pecahan mana yang nilainya SAMA dengan 1/2 (setengah)?",
+        "opsi": ["2/4", "1/3", "3/5"],
+        "jawaban": "2/4",
+        "pesan": "Pintar! 2 potong dari 4 bagian (2/4) itu sama persis dengan setengah (1/2)."
+    },
+    {
+        "soal": "6. Ayah mengecat dinding. Pagi hari selesai 3/5 bagian. Siang hari selesai 1/5 bagian. Berapa bagian yang sudah dicat?",
+        "opsi": ["4/5", "4/10", "3/5"],
+        "jawaban": "4/5",
+        "pesan": "Luar biasa! 3/5 + 1/5 = 4/5."
+    },
+    {
+        "soal": "7. Satu gelas penuh air (1 utuh). Diminum ayah 1/4 bagian. Sisa air di gelas adalah...",
+        "opsi": ["2/4", "3/4", "4/4"],
+        "jawaban": "3/4",
+        "pesan": "Benar! 1 utuh itu sama dengan 4/4. Jadi 4/4 dikurangi 1/4 sisanya 3/4."
+    },
+    {
+        "soal": "8. 2/4 + 2/4 sama dengan...",
+        "opsi": ["4/8", "4/4 (atau 1 utuh)", "2/8"],
+        "jawaban": "4/4 (atau 1 utuh)",
+        "pesan": "Super! 2/4 ditambah 2/4 jadi 4/4. 4 dibagi 4 = 1 (utuh)."
+    },
+    {
+        "soal": "9. Ani punya tali sepanjang 4/6 meter. Dipotong 2/6 meter. Berapa sisa tali Ani?",
+        "opsi": ["2/6", "6/6", "1/6"],
+        "jawaban": "2/6",
+        "pesan": "Mantap! 4/6 - 2/6 = 2/6."
+    },
+    {
+        "soal": "10. Manakah yang nilainya paling kecil?",
+        "opsi": ["1/2", "1/3", "1/8"],
+        "jawaban": "1/8",
+        "pesan": "Wah, logika matematikamu jalan! Bayangkan kue dibagi 8, potongannya pasti sangat kecil."
+    }
+]
+
+# --- PENGATURAN STATE (Memori Aplikasi) ---
 if 'score' not in st.session_state:
     st.session_state.score = 0
-if 'level' not in st.session_state:
-    st.session_state.level = 1
-if 'mission_status' not in st.session_state:
-    st.session_state.mission_status = 'playing' # 'playing' atau 'success'
+if 'q_index' not in st.session_state:
+    st.session_state.q_index = 0
+if 'status_jawaban' not in st.session_state:
+    st.session_state.status_jawaban = None # None, 'benar', atau 'salah'
 
-# --- Header & Score Board ---
+# --- HEADER APLIKASI ---
 st.markdown('<div class="main-title">Petualangan PiMa 🚀</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Belajar Matematika Jadi Semudah Bermain Game!</div>', unsafe_allow_html=True)
 
-col1, col2 = st.columns(2)
-with col1:
-    st.markdown(f'<div class="score-board"><h4>⭐ Poin: {st.session_state.score}</h4></div>', unsafe_allow_html=True)
-with col2:
-    st.markdown(f'<div class="score-board"><h4>🎯 Misi ke: {st.session_state.level}</h4></div>', unsafe_allow_html=True)
+# Papan Skor
+c1, c2 = st.columns(2)
+with c1:
+    st.markdown(f'<div class="score-badge">⭐ Total Poin: {st.session_state.score}</div>', unsafe_allow_html=True)
+with c2:
+    q_tampil = min(st.session_state.q_index + 1, len(misi_1))
+    st.markdown(f'<div class="level-badge">🎯 Soal: {q_tampil} dari {len(misi_1)}</div>', unsafe_allow_html=True)
 
-st.divider()
+st.write("---")
 
-# --- Misi 1: Pecahan (1/2 + 1/4) ---
-if st.session_state.level == 1:
-    st.subheader("Misi 1: Menggabungkan Martabak 🥞")
+# --- LOGIKA GAME ---
+if st.session_state.q_index < len(misi_1):
+    # Ambil data soal saat ini
+    soal_sekarang = misi_1[st.session_state.q_index]
     
-    # Area Cerita
-    st.markdown("""
-        <div class="story-box">
-        Budi punya <strong>1/2 (setengah)</strong> loyang martabak cokelat.<br>
-        Siti membawa <strong>1/4 (seperempat)</strong> martabak keju.<br>
-        Berapa jumlah martabak mereka jika digabungkan?
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Visualisasi Sederhana menggunakan kolom
-    st.write("Bayangkan loyang martabak dibagi menjadi 4 bagian yang sama besar:")
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown(f'<div class="question-text">{soal_sekarang["soal"]}</div>', unsafe_allow_html=True)
     
-    c1, c2, c3 = st.columns([1, 0.5, 1])
-    with c1:
-        st.write("**Loyang Budi (1/2)**")
-        # Visualisasi 1/2 sebagai 2 dari 4 bagian (menggunakan warna)
-        st.markdown("""
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; width: 100px; height: 100px; border: 2px solid gray; border-radius: 50%; overflow: hidden;">
-                <div style="background-color: #8B4513;"></div> <!-- Cokelat -->
-                <div style="background-color: #8B4513;"></div> <!-- Cokelat -->
-                <div style="background-color: transparent;"></div>
-                <div style="background-color: transparent;"></div>
-            </div>
-        """, unsafe_allow_html=True)
-        st.caption("2 dari 4 bagian terisi")
-
-    with c2:
-        st.write("")
-        st.write("")
-        st.write("")
-        st.markdown("<h2 style='text-align:center;'>+</h2>", unsafe_allow_html=True)
-
-    with c3:
-        st.write("**Martabak Siti (1/4)**")
-        # Visualisasi 1/4 sebagai 1 dari 4 bagian
-        st.markdown("""
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; width: 100px; height: 100px; border: 2px dashed gray; border-radius: 50%; overflow: hidden;">
-                <div style="background-color: transparent;"></div>
-                <div style="background-color: transparent;"></div>
-                <div style="background-color: transparent;"></div>
-                <div style="background-color: #FBBF24;"></div> <!-- Keju -->
-            </div>
-        """, unsafe_allow_html=True)
-        st.caption("1 dari 4 bagian terisi")
-
-    st.write("---")
+    # Area tombol pilihan ganda
+    st.write("Pilih jawabanmu:")
+    col1, col2, col3 = st.columns(3)
     
-    # Area Interaksi Jawaban
-    if st.session_state.mission_status == 'playing':
-        st.write("Jika martabak Siti digabungkan ke loyang Budi, berapa total bagian yang terisi?")
-        
-        # Pilihan Jawaban
-        col_btn1, col_btn2, col_btn3 = st.columns(3)
-        
-        with col_btn1:
-            if st.button("2/6 Bagian", use_container_width=True):
-                st.error("Waduh, loyangnya kan cuma dibagi 4. Coba hitung lagi kotaknya!")
-        
-        with col_btn2:
-            if st.button("3/4 Bagian", use_container_width=True):
-                st.success("🎉 Hebat! Jawabanmu Benar!")
-                st.session_state.score += 10
-                st.session_state.mission_status = 'success'
-                st.rerun() # Refresh halaman untuk menampilkan tombol Lanjut
-        
-        with col_btn3:
-            if st.button("4/4 Bagian", use_container_width=True):
-                st.warning("Hampir! Tapi belum penuh satu loyang tuh.")
+    # Fungsi untuk mengecek jawaban
+    def cek_jawaban(jawaban_user):
+        if jawaban_user == soal_sekarang["jawaban"]:
+            st.session_state.status_jawaban = 'benar'
+            st.session_state.score += 10
+        else:
+            st.session_state.status_jawaban = 'salah'
 
-    # Jika Berhasil
-    elif st.session_state.mission_status == 'success':
+    # Tombol Opsi A
+    with col1:
+        if st.button(soal_sekarang["opsi"][0], use_container_width=True, key=f"btn1_{st.session_state.q_index}"):
+            cek_jawaban(soal_sekarang["opsi"][0])
+    # Tombol Opsi B
+    with col2:
+        if st.button(soal_sekarang["opsi"][1], use_container_width=True, key=f"btn2_{st.session_state.q_index}"):
+            cek_jawaban(soal_sekarang["opsi"][1])
+    # Tombol Opsi C
+    with col3:
+        if st.button(soal_sekarang["opsi"][2], use_container_width=True, key=f"btn3_{st.session_state.q_index}"):
+            cek_jawaban(soal_sekarang["opsi"][2])
+
+    st.markdown('</div>', unsafe_allow_html=True) # Tutup card
+
+    # Menampilkan hasil setelah tombol ditekan
+    if st.session_state.status_jawaban == 'benar':
         st.balloons()
-        st.success("Luar biasa! 1/2 (atau 2/4) ditambah 1/4 menjadi 3/4. Kamu mendapatkan 10 Poin!")
+        st.success("Tepat Sekali! 🎉")
+        st.markdown(f'<div class="explanation-box">💡 <b>Penjelasan:</b><br>{soal_sekarang["pesan"]}</div>', unsafe_allow_html=True)
         
-        if st.button("Lanjut ke Misi Berikutnya ➡️"):
-            st.session_state.level += 1
-            st.session_state.mission_status = 'playing'
+        if st.button("Lanjut Soal Berikutnya ➡️", type="primary"):
+            st.session_state.q_index += 1
+            st.session_state.status_jawaban = None
+            st.rerun()
+            
+    elif st.session_state.status_jawaban == 'salah':
+        st.error("Waduh, jawabanmu belum tepat. Yuk coba dihitung ulang pelan-pelan! 🕵️‍♂️")
+        if st.button("Coba Lagi 🔄"):
+            st.session_state.status_jawaban = None
             st.rerun()
 
-# --- Misi 2: Perkalian (Level Selanjutnya) ---
-elif st.session_state.level == 2:
-    st.subheader("Misi 2: Harta Karun Bajak Laut 🏴‍☠️")
-    st.write("Misi perkalian sedang dalam pengembangan...")
+else:
+    # --- JIKA SEMUA SOAL SELESAI ---
+    st.markdown('<div class="card" style="text-align:center;">', unsafe_allow_html=True)
+    st.markdown('<div class="question-text" style="font-size: 2rem;">🏆 MISI SELESAI! 🏆</div>', unsafe_allow_html=True)
+    st.write(f"Kamu luar biasa! Total skormu adalah **{st.session_state.score}**.")
+    st.image("https://cdn-icons-png.flaticon.com/512/3113/3113054.png", width=150) # Ikon piala
     
-    if st.button("Kembali ke Misi 1"):
-        st.session_state.level = 1
+    if st.button("Ulangi Petualangan dari Awal 🔄", use_container_width=True):
+        st.session_state.q_index = 0
+        st.session_state.score = 0
+        st.session_state.status_jawaban = None
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
